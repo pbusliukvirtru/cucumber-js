@@ -140,7 +140,9 @@ export function formatIssue({
   const prefix = `${number}) `
   let text = prefix
   const scenarioLocation = formatLocation(testCase.sourceLocation)
-  text += `Scenario: ${pickle.name} # ${colorFns.location(scenarioLocation)}\n`
+  text += `Scenario: ${pickle.name} `
+  text += getRetryWarningText(testCase, colorFns.retry)
+  text += `# ${colorFns.location(scenarioLocation)}\n`
   const stepLineToKeywordMap = getStepLineToKeywordMap(gherkinDocument)
   const stepLineToPickledStepMap = getStepLineToPickledStepMap(pickle)
   let isBeforeHook = true
@@ -170,4 +172,16 @@ export function formatIssue({
     previousKeywordType = keywordType
   })
   return `${text}\n`
+}
+
+function getRetryWarningText(testCase, flakyColorFn) {
+  const result = testCase.result
+  if (!testCase.result) {
+    return ''
+  }
+  const attemptNumber = testCase.attemptNumber
+  if (attemptNumber > 1 || result.status === Status.RETRY) {
+    return flakyColorFn(`(attempt #${attemptNumber}) `)
+  }
+  return ''
 }
